@@ -1,30 +1,40 @@
 import util
 import datetime, time
 import threading
-import subprocess
+import subprocess, socket
 
+slice_time = 0
 time_list = []
+ip_list = [("127.0.0.1", 12312), ("127.0.0.1", 12313), ("127.0.0.1", 12314), ("127.0.0.1", 12315)]
 
 def slice_video(filename, n):
-    time.sleep(2)
+    start = time.time()
     tiles = []
+    crop_list = [(1, 1), (1, 2), (2, 1), (2, 2)]
     for i in range(n):
-        tiles.append(f"tile{i}.mp4")
+        tile_name = f"tile{i}.mp4"
+        subprocess.call(
+            'ffmpeg -i {0} -vf crop=iw/4:ih/4:{1}*iw/4:{2}*ih/4 -c:v libx264 -qp 22 -x264-params keyint=30:min-keyint=30:scenecut=0:no-scenecut=1 -an -f mp4 {3}'.format(filename, crop_list[i][0],crop_list[i][1], tile_name),
+            stdout=subprocess.PIPE, shell=True)
+        tiles.append(tile_name)
+    end = time.time()
+    print('slice done, process_time={0}s'.format(end - start))
+    slice_time = end - start
     return tiles
 
 
 class VideoToTile(threading.Thread):
-    def __init__(self, tid, ln, tile_name):
+    def __init__(self, tid, tile_name, addr):
         threading.Thread.__init__(self)
         self.tid = tid
-        self.listener = ln
         self.tile_name = tile_name
+        self.remote_addr = addr
 
     def run(self):
         try:
             start_time = time.time()
-            conn, addr = self.listener.accept()  # Establish connection with client.
-            print(f"Got connection from {addr}")
+            conn = socket.socket()  # Create a socket object
+            conn.connect(self.remote_addr)
 
             util.send_file(conn, self.tile_name)
             util.recv_file(conn, "tile_" + str(self.tid) + ".mp4")
@@ -37,31 +47,18 @@ class VideoToTile(threading.Thread):
 
 
 def run_server() -> None:
-    import socket
 
-    port = 12312  # Reserve a port for your service.
-    sock = socket.socket()  # Create a socket object
-    host = socket.gethostname()  # Get local machine name
-    sock.bind((host, port))  # Bind to the port
-    sock.listen(5)  # Now wait for client connection.
-
-    print("Server listening....")
     i = 0
-    thread_num = 4
+    thread_num = 1
     tiles = slice_video(util.original_name, thread_num)
 
-
-    while True:
-        vt = VideoToTile(i, sock, tiles[i])
+    for i in range(thread_num):
+        vt = VideoToTile(i, tiles[i], ip_list[i])
         vt.setDaemon(True)
         vt.start()
-        i += 1
-        if i==thread_num:
-            break
 
+    print("waiting edge to transcode...")
     time.sleep(1000)
-    sock.shutdown(1)
-    sock.close()
 
 
 if __name__ == "__main__":

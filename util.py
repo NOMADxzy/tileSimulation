@@ -1,4 +1,4 @@
-original_name = "video.mp4"
+original_name = "video_4k.mp4"
 recv_tile_name = "recv_tile_name.mp4"
 transcode_tile_name = "transcode_tile_name.mp4"
 tmp_folder = "tmp/"
