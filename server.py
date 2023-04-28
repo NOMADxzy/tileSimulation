@@ -48,7 +48,7 @@ class VideoToTile(threading.Thread):
             print(e)
 
 
-def run_server(thread_num = 2) -> None:
+def run_server(thread_num = 4) -> None:
 
     tiles = slice_video(util.original_name, thread_num)
 

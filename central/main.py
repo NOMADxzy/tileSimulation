@@ -26,7 +26,7 @@ def slice_video(filename, n):
 
 if __name__ == '__main__':
     start = time.time()
-    tile_num = 2
+    tile_num = 4
 
     tiles = slice_video(util.original_name, tile_num)
     for tile in tiles:
