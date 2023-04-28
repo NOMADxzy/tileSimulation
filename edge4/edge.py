@@ -15,7 +15,7 @@ def transcode(filename):
 
 if __name__ == "__main__":
 
-    port = 12312  # Reserve a port for your service.
+    port = 12315  # Reserve a port for your service.
     listener = socket.socket()  # Create a socket object
     host = socket.gethostname()  # Get local machine name
     listener.bind((host, port))  # Bind to the port
