@@ -24,10 +24,15 @@ if __name__ == "__main__":
 
     sock, addr = listener.accept()  # Establish connection with client.
     print(f"Got connection from {addr}")
-
+    t1 = time.time()
     util.recv_file(sock, util.recv_tile_name)
+    t2 = time.time()
     transcode_file = transcode(util.recv_tile_name)
+    t3 = time.time()
     util.send_file(sock, transcode_file)
+    t4 = time.time()
+
+    print(f"transport time:{t2 - t1 + t4 - t3}\ntranscode time:{t3 - t2}\n ")
 
     sock.close()
     listener.close()
